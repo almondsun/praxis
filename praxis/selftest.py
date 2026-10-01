@@ -169,7 +169,9 @@ def selftest(layout):
         execute(layout, project,
                 'This is the authorized fresh recovery half of the self-test. Prior conversation is unavailable. '
                 'Read Git status/log, PRAXIS_CHECKPOINT.md and PLAN.md. Recover the recorded Engram decision, '
-                'complete only pending verification and closure with Superpowers, and commit the final checkpoint. '
+                'complete only pending verification and closure with Superpowers, using the configured native '
+                'reviewer role in a fresh context for workflow review, and commit the final checkpoint. '
+                'Do not launch a nested Codex CLI from the sandbox. '
                 'No external actions. Report the actual tests and review evidence.', 'recovery', evidence,
                 trusted_fixture=True, timeout=900)
         recovered_archive = evidence / 'recovery-runtime'; recovered_archive.mkdir()

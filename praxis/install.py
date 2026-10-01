@@ -4,6 +4,7 @@ import hashlib
 import os
 from pathlib import Path
 import platform
+import re
 import shlex
 import shutil
 import sys
@@ -95,14 +96,32 @@ def check_ownership(layout):
         raise PraxisError('Existing customization requires explicit cutover: ' + ', '.join(conflicts))
 
 
-def configuration_digest(path):
-    """Codex records project trust in user config; exclude only that native field."""
-    config = tomllib.loads(path.read_text())
+def native_consent(config):
+    """Separate native consent records; never normalize hook enable/disable edits."""
     projects = config.pop('projects', {})
     if not isinstance(projects, dict) or any(
             not isinstance(value, dict) or set(value) != {'trust_level'} or
             value['trust_level'] not in ('trusted', 'untrusted') for value in projects.values()):
         raise PraxisError('Unexpected project configuration; inspect before continuing')
+    hooks = config.get('hooks', {})
+    if not isinstance(hooks, dict):
+        raise PraxisError('Unexpected hook configuration; inspect before continuing')
+    states = hooks.pop('state', {})
+    if not isinstance(states, dict) or any(
+            not isinstance(key, str) or not key or not isinstance(value, dict) or
+            set(value) != {'trusted_hash'} or not isinstance(value['trusted_hash'], str) or
+            not re.fullmatch(r'sha256:[a-f0-9]{64}', value['trusted_hash'])
+            for key, value in states.items()):
+        raise PraxisError('Unexpected hook consent configuration; inspect before continuing')
+    if not hooks:
+        config.pop('hooks', None)
+    return projects, states
+
+
+def configuration_digest(path):
+    """Codex stores native project/hook consent; all execution settings stay bound."""
+    config = tomllib.loads(path.read_text())
+    native_consent(config)
     return hashlib.sha256(json.dumps(config, sort_keys=True).encode()).hexdigest()
 
 
@@ -114,9 +133,14 @@ def managed_file_matches(path, relative, digest, manifest):
     return sha(path) == digest
 
 
+def toml_string(value):
+    # JSON surrogate-pair escapes are invalid TOML Unicode scalar escapes.
+    return json.dumps(value, ensure_ascii=False)
+
+
 def base_config(layout):
     route = read_json(ROOT / 'config/routing.json')
-    q = json.dumps
+    q = toml_string
     lines = [f'model = {q(route["quality"]["model"])}',
              f'model_reasoning_effort = {q(route["quality"]["effort"])}',
              'approval_policy = "on-request"', 'sandbox_mode = "workspace-write"',
@@ -156,6 +180,8 @@ def base_config(layout):
 def configure(layout):
     marker = layout.codex / 'praxis-install.json'
     check_ownership(layout)
+    config_path = layout.codex / 'config.toml'
+    projects, hook_states = native_consent(tomllib.loads(config_path.read_text())) if config_path.exists() else ({}, {})
     layout.codex.mkdir(parents=True, exist_ok=True)
     if not marker.exists():
         write_json(marker, {'readiness': 'installation-in-progress'})
@@ -171,7 +197,12 @@ def configure(layout):
     if any(s in memory for s in ('gentle-ai:sdd', 'gentle-ai:persona', 'gentle-ai:gga')):
         raise PraxisError('Gentle unexpectedly injected an overlapping workflow')
     # Preserve upstream memory guidance, not its base-instruction/compaction replacement.
-    atomic(layout.codex / 'config.toml', base_config(layout))
+    config = base_config(layout)
+    for path, value in projects.items():
+        config += f'\n[projects.{toml_string(path)}]\ntrust_level = {toml_string(value["trust_level"])}\n'
+    for key, value in hook_states.items():
+        config += f'\n[hooks.state.{toml_string(key)}]\ntrusted_hash = {toml_string(value["trusted_hash"])}\n'
+    atomic(config_path, config)
     atomic(generated, (ROOT / 'config/policy.md').read_text() + '\n' + memory)
     for name in ('sdd-strong.config.toml', 'sdd-mid.config.toml', 'sdd-cheap.config.toml'):
         path = layout.codex / name

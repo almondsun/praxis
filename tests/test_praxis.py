@@ -10,12 +10,43 @@ from unittest.mock import Mock, patch
 from praxis.core import Layout, PraxisError, atomic, read_json, write_json
 from praxis.cutover import apply, fingerprint, shell_conflicts, targets
 from praxis.hook import respond
-from praxis.install import base_config, bootstrap, doctor, unpack, configuration_digest
+from praxis.install import base_config, bootstrap, configure, doctor, unpack, configuration_digest
 from praxis.session import execute, infrastructure_errors
 from praxis.selftest import runtime_evidence, require_regression_evidence
 
 
 class PraxisTests(unittest.TestCase):
+    def test_native_hook_consent_is_normalized_but_execution_edits_are_rejected(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / 'config.toml'
+            atomic(path, 'model="q"\n')
+            before = configuration_digest(path)
+            consent = '[hooks.state."path:fixture"]\ntrusted_hash="sha256:' + 'a' * 64 + '"\n'
+            atomic(path, 'model="q"\n' + consent)
+            self.assertEqual(configuration_digest(path), before)
+            atomic(path, 'model="changed"\n' + consent)
+            self.assertNotEqual(configuration_digest(path), before)
+            for extra in ('enabled=false\n', 'unknown=true\n'):
+                atomic(path, 'model="q"\n' + consent + extra)
+                with self.assertRaises(PraxisError):
+                    configuration_digest(path)
+            atomic(path, 'model="q"\n[hooks.state."path:fixture"]\ntrusted_hash="invalid"\n')
+            with self.assertRaises(PraxisError):
+                configuration_digest(path)
+
+    def test_reconfiguration_preserves_native_consent(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            layout = Layout(tmp)
+            atomic(layout.codex / 'config.toml', 'model="q"\n[projects."/tmp/project-🚀"]\ntrust_level="trusted"\n'
+                   '[hooks.state."path:fixture-🚀"]\ntrusted_hash="sha256:' + 'a' * 64 + '"\n')
+            with patch('praxis.install.check_ownership'), patch('praxis.install.run'):
+                configure(layout)
+            config = tomllib.loads((layout.codex / 'config.toml').read_text())
+            self.assertEqual(config['projects']['/tmp/project-🚀']['trust_level'], 'trusted')
+            self.assertEqual(config['hooks']['state']['path:fixture-🚀']['trusted_hash'], 'sha256:' + 'a' * 64)
+            self.assertEqual(configuration_digest(layout.codex / 'config.toml'),
+                             read_json(layout.codex / 'praxis-install.json')['configuration_sha256'])
+
     def test_independent_review_roles_request_readonly_and_disable_engram(self):
         with tempfile.TemporaryDirectory() as tmp:
             layout = Layout(tmp)

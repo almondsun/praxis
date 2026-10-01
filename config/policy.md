@@ -21,8 +21,10 @@ success and agent self-report alone are not quality evidence.
 Independent review roles must not modify code or verification evidence, and have
 Engram disabled. Codex 0.159.2 reapplies the parent's live sandbox to native
 subagents, so a role's read-only default is not an independent permission boundary.
-Use a separate read-only invocation when enforced filesystem isolation is required;
-the integration self-test uses this for its final independent reviewer.
+Use the configured native reviewer role with fresh context for workflow review.
+Do not launch a nested Codex CLI from a sandboxed shell: its API access and runtime
+bootstrap are constrained by that sandbox. The integration controller owns the
+separate enforced read-only final review invocation outside the candidate sandbox.
 Return the complete final review after inspection; do not defer
 it for memory saves, conflict judgments or session summaries. Memory remains
 available to implementation and recovery agents.

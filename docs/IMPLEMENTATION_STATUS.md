@@ -9,12 +9,13 @@ Executed locally:
   and installed-file verification passed.
 - Repeated provision-only bootstrap: no configuration errors; correctly reports
   not ready before a successful live self-test.
-- Twenty-two unit/regression tests passed, including configuration ownership,
+- Twenty-four unit/regression tests passed, including configuration ownership,
   archive safety, runtime-error classification, role routing, Git environment
   isolation, launcher/hook inventory, active-process recheck and stale services,
   interruption journals, native trust normalization, nonempty regression checks,
   runtime role/skill isolation, production/control deadline separation and
-  memory-independent review role configuration.
+  memory-independent review role configuration and native consent preservation
+  with non-BMP Unicode paths.
 - Restricted, network-isolated validation sandbox executed system Python without
   access to the user home.
 - Authenticated app-server inspection confirmed all configured model/effort pairs
@@ -54,7 +55,21 @@ final delivery without memory bookkeeping. Model tiers and review criteria are
 unchanged. Pinned Codex source also confirms that native child permissions inherit
 the parent's live sandbox; read-only role defaults are not an enforced boundary.
 The separate final reviewer remains a directly enforced read-only invocation.
-Fresh self-test `1790866445215471730` is running under the corrected configuration.
+Self-test `1790866445215471730` recovered its checkpoint, retrieved Engram state,
+and passed eight tests and 21 contract checks. Its agent attempted a nested Codex
+CLI review from the sandbox; model API connection/routing failed before inspection.
+The separate outer reviewer found no blocking code issue but rejected the still
+blocked checkpoint/closure. This run did not pass the integration gate. Workflow
+guidance now requires the native configured reviewer, not nested CLI execution.
+
+Native hook-consent validation `diagnostics/native-hook-consent-02` used the same
+`hooks/list` and `config/batchWrite` mechanism as Codex's `/hooks` interface. Only
+the two checksum-verified isolated Praxis hooks were trusted, by exact native
+hash; no blanket bypass was used. Doctor reported no errors after consent and
+after reconfiguration. Config normalization excludes only valid native consent
+records, preserves them on bootstrap, and rejects hook enable/disable edits.
+Focused security rereview confirmed the Unicode consent round-trip fix.
+Fresh self-test `1790886761414324090` is running with these corrections.
 
 Earlier integration attempts preserved keyring authentication, native trust
 normalization and remote-plugin activation issues. File-backed isolated login
@@ -67,10 +82,16 @@ for a subsequently changed installation manifest. Readiness is hash-bound.
 
 ## Limits and remaining deployment work
 
-Arch and Ubuntu CI jobs are defined but have not been executed. Local Docker
-platform validation is unavailable without additional host authorization. Do not
-interpret this document or CI definitions as cross-platform success evidence.
-The dependency lock remains `approved: false` pending the remaining platform
-validation. A real-project pilot and standalone clean cutover have not occurred.
+Arch and Ubuntu 24.04 container CI passed on source commit `9e04612`:
+[run 36880605579](https://github.com/almondsun/praxis/actions/runs/36880605579).
+Each job ran the unit suite and two isolated provision-only installations with
+empty error lists. CI does not authenticate or run live model, desktop, hook-trust
+or recovery tests; those platform-specific behaviors remain unverified there.
+The dependency lock remains `approved: false` pending the current live integration
+gate. The user selected a new `/home/mitin/code/praxis-pilot` taskbox CLI project
+for the real pilot, pending that gate. No pilot implementation or cutover has
+occurred. The pilot must use native hook trust without the fixture bypass, retain
+actual model/skill/TDD/memory/recovery/review evidence, and finish locally. The
+user explicitly excluded production cutover from the pilot task.
 Production hook trust must be granted through Codex's native `/hooks` interface;
 the controlled fixture trust bypass is not used for ordinary production resume.
