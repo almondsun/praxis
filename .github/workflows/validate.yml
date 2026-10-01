@@ -1,0 +1,29 @@
+name: Validate Praxis
+on: [push, pull_request]
+permissions:
+  contents: read
+jobs:
+  linux:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        image: [ubuntu:24.04, archlinux:base]
+    container: ${{ matrix.image }}
+    steps:
+      - name: Install test prerequisites
+        shell: sh
+        run: |
+          if command -v apt-get; then
+            apt-get update && apt-get install -y python3 git ca-certificates bubblewrap
+          else
+            pacman -Syu --noconfirm --needed python git ca-certificates bubblewrap
+          fi
+      - uses: actions/checkout@v4
+      - name: Unit tests
+        run: python3 -m unittest discover -s tests -v
+      - name: Isolated provisioning and repeatability
+        shell: sh
+        run: |
+          python3 -m praxis --home /opt/praxis-test bootstrap --no-auth --no-self-test > /tmp/first.json || test $? -eq 1
+          python3 -m praxis --home /opt/praxis-test bootstrap --no-auth --no-self-test > /tmp/second.json || test $? -eq 1
+          python3 -c 'import json; a=json.load(open("/tmp/first.json")); b=json.load(open("/tmp/second.json")); assert a["errors"] == b["errors"] == []; assert not a["ready"] and not b["ready"]'

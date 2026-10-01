@@ -1,0 +1,5 @@
+{
+  "quality": {"model": "gpt-6-astra", "effort": "high"},
+  "standard": {"model": "gpt-6.1-sol", "effort": "medium"},
+  "mechanical": {"model": "gpt-6-luna", "effort": "medium"}
+}

@@ -1,0 +1,45 @@
+{
+  "schema_version": 1,
+  "approved": false,
+  "resolved_at": "2026-09-30",
+  "platform": "linux-x86_64",
+  "components": {
+    "codex": {
+      "repository": "openai/codex",
+      "version": "0.159.2",
+      "tag": "rust-v0.159.2",
+      "commit": "ff6aec96948b70d94983af2641a6b67c94faeff5",
+      "url": "https://github.com/openai/codex/releases/download/rust-v0.159.2/codex-package-x86_64-unknown-linux-musl.tar.gz",
+      "sha256": "9e2d29a713b94478b240dec2f10e11324cd05fad76dc43e7c639bdf8a1337a6b",
+      "executable": "bin/codex"
+    },
+    "gentle-ai": {
+      "repository": "Gentleman-Programming/gentle-ai",
+      "version": "3.7.0",
+      "tag": "v3.7.0",
+      "commit": "6dee8f833aec9e46015759c5065a9035795d9af1",
+      "url": "https://github.com/Gentleman-Programming/gentle-ai/releases/download/v3.7.0/gentle-ai_3.7.0_linux_amd64.tar.gz",
+      "sha256": "a730a61a43758f04cc9a4ac644945cc0e8652a1e33d6997a0a3d3f0044d2fff5",
+      "executable": "gentle-ai"
+    },
+    "engram": {
+      "repository": "Gentleman-Programming/engram",
+      "version": "2.2.1",
+      "tag": "v2.2.1",
+      "commit": "818be842f57a95063f62f1b745297a96c407c143",
+      "url": "https://github.com/Gentleman-Programming/engram/releases/download/v2.2.1/engram_2.2.1_linux_amd64.tar.gz",
+      "sha256": "5094bbe764f4c775bb17ce7ac53931323ca184a1f57e88d458aaa4c4d6e6a85a",
+      "executable": "engram"
+    },
+    "superpowers": {
+      "repository": "obra/superpowers",
+      "version": "6.4.2",
+      "tag": "v6.4.2",
+      "commit": "8ca22dba9a94f28898bbce59f2537ff4d87c747d",
+      "url": "https://codeload.github.com/obra/superpowers/tar.gz/8ca22dba9a94f28898bbce59f2537ff4d87c747d",
+      "sha256": "29714b2c4c727ecc6600f9e5982a0dcbb829860ba79626f1941a0f233e85331a",
+      "strip_root": true,
+      "provenance": "Exact upstream source release; unchanged skills exposed through native Codex skill discovery"
+    }
+  }
+}

@@ -1,0 +1,15 @@
+#!/bin/sh
+set -eu
+cd "$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)"
+if ! command -v python3 >/dev/null 2>&1 || ! command -v git >/dev/null 2>&1 || ! command -v bwrap >/dev/null 2>&1; then
+    if command -v apt-get >/dev/null 2>&1; then
+        sudo apt-get update
+        sudo apt-get install -y python3 git ca-certificates bubblewrap
+    elif command -v pacman >/dev/null 2>&1; then
+        sudo pacman -S --needed python git ca-certificates bubblewrap
+    else
+        echo 'Install Python >=3.11 and Git; supported hosts are Arch and Ubuntu 24.04.' >&2
+        exit 1
+    fi
+fi
+exec python3 -m praxis bootstrap "$@"
