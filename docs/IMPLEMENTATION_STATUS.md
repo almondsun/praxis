@@ -14,7 +14,7 @@ Executed locally:
   isolation, launcher/hook inventory, active-process recheck and stale services,
   interruption journals, native trust normalization, nonempty regression checks,
   runtime role/skill isolation, production/control deadline separation and
-  memory-independent review role configuration and native consent preservation
+  supported review-role configuration and native consent preservation
   with non-BMP Unicode paths.
 - Restricted, network-isolated validation sandbox executed system Python without
   access to the user home.
@@ -50,10 +50,10 @@ Evidence is private and outside Git under the isolated development home at
 
 The timeout diagnosis found that the recovery reviewer reported no findings at
 14:31:33 UTC, then continued Engram bookkeeping at 14:35:14 UTC before producing
-its final report. Review roles now disable Engram and explicitly require complete
-final delivery without memory bookkeeping. Model tiers and review criteria are
-unchanged. Pinned Codex source also confirms that native child permissions inherit
-the parent's live sandbox; read-only role defaults are not an enforced boundary.
+its final report. Review roles now instruct complete final delivery without memory
+bookkeeping. Native child MCP and permission settings inherit the parent; these
+instructions are behavior guardrails, not isolation. Model tiers and review
+criteria are unchanged.
 The separate final reviewer remains a directly enforced read-only invocation.
 Self-test `1790866445215471730` recovered its checkpoint, retrieved Engram state,
 and passed eight tests and 21 contract checks. Its agent attempted a nested Codex
@@ -69,7 +69,27 @@ hash; no blanket bypass was used. Doctor reported no errors after consent and
 after reconfiguration. Config normalization excludes only valid native consent
 records, preserves them on bootstrap, and rejects hook enable/disable edits.
 Focused security rereview confirmed the Unicode consent round-trip fix.
-Fresh self-test `1790886761414324090` is running with these corrections.
+Self-test `1790886761414324090` completed checkpoint/recovery, verification and
+separate final review, but remained blocked because native `reviewer` dispatch
+failed. The server restart interrupted wrapper finalization; authentic reviewer
+JSON and phase results were preserved, and its result explicitly records the
+integration blocker and unavailable outer CLI exit.
+
+The cause was established from pinned 0.159.2 source: role files parse independently,
+so an MCP stanza containing only `enabled=false` has no valid transport and causes
+the role to be omitted. Even a full transport would not change the child's MCP
+servers: bounded role overrides omit MCP and sandbox fields. Those ineffective
+settings were removed. Native workflow review is fresh-context and instructed not
+to use memory or edit; the separate final review enforces read-only and disabled
+Engram at session level.
+
+Focused live probe `diagnostics/native-review-role-01` passed with normal native
+hook consent, no fallback and no blanket bypass. Runtime records showed parent
+and configured reviewer both Astra/high, Superpowers visible, remote plugins
+absent, and no reviewer Engram invocation. The complete review returned no findings.
+The full smoke additionally requires actual configured native reviewer runtime
+evidence before passing; a generic fallback cannot satisfy it.
+Fresh full self-test `1790887965811629228` is running with the verified native roles.
 
 Earlier integration attempts preserved keyring authentication, native trust
 normalization and remote-plugin activation issues. File-backed isolated login
@@ -82,8 +102,9 @@ for a subsequently changed installation manifest. Readiness is hash-bound.
 
 ## Limits and remaining deployment work
 
-Arch and Ubuntu 24.04 container CI passed on source commit `9e04612`:
-[run 36880605579](https://github.com/almondsun/praxis/actions/runs/36880605579).
+Arch and Ubuntu 24.04 container CI passed on source commits `9e04612` and `7e98054`:
+[initial run](https://github.com/almondsun/praxis/actions/runs/36880605579) and
+[consent-repair run](https://github.com/almondsun/praxis/actions/runs/36922976277).
 Each job ran the unit suite and two isolated provision-only installations with
 empty error lists. CI does not authenticate or run live model, desktop, hook-trust
 or recovery tests; those platform-specific behaviors remain unverified there.

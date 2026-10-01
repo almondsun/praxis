@@ -176,6 +176,8 @@ def selftest(layout):
                 trusted_fixture=True, timeout=900)
         recovered_archive = evidence / 'recovery-runtime'; recovered_archive.mkdir()
         recovered = runtime_evidence(layout, recovered_archive)
+        if not any(r['role'] == 'reviewer' and r['expected_tier'] == 'quality' for r in recovered):
+            raise PraxisError('Configured native quality reviewer was not exercised during recovery')
         if {r['session'] for r in models} & {r['session'] for r in recovered}:
             raise PraxisError('Recovery reused the previous session')
         if sha(project / 'PLAN.md') != before_plan:

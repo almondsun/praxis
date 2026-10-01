@@ -160,8 +160,8 @@ def base_config(layout):
                   f'config_file = "agents/{role}.toml"']
         reviewing = role in ('reviewer', 'security-auditor', 'interop-auditor')
         instructions = ('Review only; do not edit the submission. Report blockers with evidence. '
-                        'Engram is intentionally disabled for independent review: do not retrieve or '
-                        'persist memory, create session summaries, or resolve memory conflicts. '
+                        'Do not use Engram during workflow review: do not retrieve or persist memory, '
+                        'create session summaries, or resolve memory conflicts. '
                         'Inspect the current submission and verification evidence, then return the '
                         'complete review as your final answer, including limitations. '
                         'A progress message to the parent does not replace the final review.'
@@ -169,8 +169,7 @@ def base_config(layout):
                         'Implement the assigned task following Superpowers, including tests and review evidence.')
         atomic(layout.codex / 'agents' / (role + '.toml'),
                f'model = {q(route[tier]["model"])}\nmodel_reasoning_effort = {q(route[tier]["effort"])}\n'
-               f'developer_instructions = {q(instructions)}\n' +
-               ('sandbox_mode = "read-only"\n[mcp_servers.engram]\nenabled = false\n' if reviewing else ''))
+               f'developer_instructions = {q(instructions)}\n')
     lines += ['[mcp_servers.engram]', f'command = {q(str(layout.executable("engram")))}',
               'args = ["mcp", "--tools=agent"]', 'required = false',
               '[mcp_servers.openaiDeveloperDocs]', 'url = "https://developers.openai.com/mcp"']

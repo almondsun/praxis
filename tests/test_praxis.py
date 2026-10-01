@@ -47,14 +47,14 @@ class PraxisTests(unittest.TestCase):
             self.assertEqual(configuration_digest(layout.codex / 'config.toml'),
                              read_json(layout.codex / 'praxis-install.json')['configuration_sha256'])
 
-    def test_independent_review_roles_request_readonly_and_disable_engram(self):
+    def test_review_roles_use_supported_native_overrides_only(self):
         with tempfile.TemporaryDirectory() as tmp:
             layout = Layout(tmp)
             base_config(layout)
             for role in ('reviewer', 'security-auditor', 'interop-auditor'):
                 config = tomllib.loads((layout.codex / 'agents' / (role + '.toml')).read_text())
-                self.assertEqual(config['sandbox_mode'], 'read-only')
-                self.assertFalse(config['mcp_servers']['engram']['enabled'])
+                self.assertEqual(set(config), {'model', 'model_reasoning_effort', 'developer_instructions'})
+                self.assertIn('Do not use Engram', config['developer_instructions'])
                 self.assertEqual(config['model'], 'gpt-6-astra')
                 self.assertEqual(config['model_reasoning_effort'], 'high')
             config = tomllib.loads((layout.codex / 'agents' / 'implementer.toml').read_text())
