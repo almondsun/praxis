@@ -89,7 +89,21 @@ and configured reviewer both Astra/high, Superpowers visible, remote plugins
 absent, and no reviewer Engram invocation. The complete review returned no findings.
 The full smoke additionally requires actual configured native reviewer runtime
 evidence before passing; a generic fallback cannot satisfy it.
-Fresh full self-test `1790887965811629228` is running with the verified native roles.
+Fresh full self-test `1790887965811629228` stopped on an actual usage limit
+after 258.08 seconds, before the planned checkpoint. Its meaningful TDD evidence
+(11 assertion failures followed by six passing tests) is preserved; it did not
+reach recovery or final review and is not a completed integration gate.
+On explicit user continuation, runtime inspection showed all configured tiers
+available and ordinary usage allowed, with 97% primary and 37% weekly quota
+remaining. Fresh full self-test `1790909044717343313` passed: implementation
+checkpoint and deliberate interruption (421.60 seconds), fresh recovery
+(405.09 seconds), native Astra/high reviewer, seven unit tests, independent
+acceptance, twelve reproduced baseline assertion failures, and separate
+read-only review (74.02 seconds) with no blocking findings. Engram write and
+fresh project-specific retrieval were verified from tool events. Readiness is
+bound to the current installation and lock hashes. The final reviewer could
+not independently inspect Git chronology because its immutable submission
+copy excludes Git metadata; controller/runtime evidence records that chronology.
 
 Earlier integration attempts preserved keyring authentication, native trust
 normalization and remote-plugin activation issues. File-backed isolated login
@@ -102,16 +116,22 @@ for a subsequently changed installation manifest. Readiness is hash-bound.
 
 ## Limits and remaining deployment work
 
-Arch and Ubuntu 24.04 container CI passed on source commits `9e04612` and `7e98054`:
+Arch and Ubuntu 24.04 container CI passed on source commits `9e04612`, `7e98054`
+and `9bdfa3a`:
 [initial run](https://github.com/almondsun/praxis/actions/runs/36880605579) and
-[consent-repair run](https://github.com/almondsun/praxis/actions/runs/36922976277).
+[consent-repair run](https://github.com/almondsun/praxis/actions/runs/36922976277),
+and [native-role run](https://github.com/almondsun/praxis/actions/runs/36924971201).
 Each job ran the unit suite and two isolated provision-only installations with
 empty error lists. CI does not authenticate or run live model, desktop, hook-trust
 or recovery tests; those platform-specific behaviors remain unverified there.
-The dependency lock remains `approved: false` pending the current live integration
-gate. The user selected a new `/home/mitin/code/praxis-pilot` taskbox CLI project
-for the real pilot, pending that gate. No pilot implementation or cutover has
-occurred. The pilot must use native hook trust without the fixture bypass, retain
+The dependency lock remains `approved: false` pending the real pilot and release
+decision; no pins were changed. The user selected a new
+`/home/mitin/code/praxis-pilot` taskbox CLI project. The repository was initialized
+from an empty directory with no copied project files or history, no remote, and
+repository-local user identity. Its greenfield discovery/design is running through
+the actual installed Praxis environment with normal native hook consent.
+No pilot implementation or
+cutover has occurred. The pilot must use native hook trust without the fixture bypass, retain
 actual model/skill/TDD/memory/recovery/review evidence, and finish locally. The
 user explicitly excluded production cutover from the pilot task.
 Production hook trust must be granted through Codex's native `/hooks` interface;
