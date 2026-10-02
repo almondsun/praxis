@@ -1,6 +1,6 @@
 # Development evidence
 
-Updated 2026-10-01. Agentcore remains the active environment; production cutover
+Updated 2026-10-02. Agentcore remains the active environment; production cutover
 has not been applied.
 
 Executed locally:
@@ -154,8 +154,17 @@ scoped retrieval. Runtime again confirmed Astra/high with pinned Superpowers
 visible and no remote plugin skills. The only project file is its newly generated
 native `.engram/config.json`; no product scaffolding or implementation was copied
 or written. Superpowers produced the concrete taskbox design and stopped at its
-required conversational design approval. The user has been asked to review it;
-the written specification and plan gates remain pending. The initial model stop
+required conversational design approval. The user approved that design.
+The initial specification phase stopped on an actual usage limit after 892.20
+seconds, preserving the draft and checkpoint. On explicit manual continuation,
+a fresh session finished self-review, retrieved architecture observation #3,
+and committed the four intended documentation/native-binding files as
+`0f2a59ab04e07c01fda0e51bd1ec54e94d713dca`, with a clean working tree.
+The written specification is now presented for human review; its approval and
+the later plan gate remain pending. No product code or tests exist yet.
+This quota interruption/fresh documentation recovery does not substitute for
+the later required deliberate implementation-checkpoint recovery exercise.
+The initial model stop
 remains recorded as an intervention,
 not an Engram persistence failure or a passed pilot phase.
 No pilot implementation or
