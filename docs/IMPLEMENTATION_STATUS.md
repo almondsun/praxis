@@ -128,8 +128,18 @@ The dependency lock remains `approved: false` pending the real pilot and release
 decision; no pins were changed. The user selected a new
 `/home/mitin/code/praxis-pilot` taskbox CLI project. The repository was initialized
 from an empty directory with no copied project files or history, no remote, and
-repository-local user identity. Its greenfield discovery/design is running through
-the actual installed Praxis environment with normal native hook consent.
+repository-local user identity. Its discovery/design ran through the actual
+installed Praxis environment with normal native hook consent. Runtime evidence
+confirmed Astra/high, native Superpowers visibility and no remote plugin skills.
+The agent read using-superpowers and brainstorming, then stopped: Engram resolved
+`praxis-pilot` from Git, but scoped context/search/review-list reads returned
+`unknown_project`. It did not initialize/register the project before stopping.
+This is an unresolved fresh-project integration path, not proof that Engram
+persistence or recovery is broken. The pilot is paused under the user's explicit
+stop-on-subsystem-issue rule. CLI exit 0 only means the blocker report completed;
+it does not mean discovery or the pilot passed. No design proposal, project files,
+implementation, commits, TDD, delegation or recovery have occurred in the pilot.
+Raw evidence remains private in `pilot-taskbox-01`; the passed smoke is preserved.
 No pilot implementation or
 cutover has occurred. The pilot must use native hook trust without the fixture bypass, retain
 actual model/skill/TDD/memory/recovery/review evidence, and finish locally. The
