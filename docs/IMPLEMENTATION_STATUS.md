@@ -140,6 +140,24 @@ stop-on-subsystem-issue rule. CLI exit 0 only means the blocker report completed
 it does not mean discovery or the pilot passed. No design proposal, project files,
 implementation, commits, TDD, delegation or recovery have occurred in the pilot.
 Raw evidence remains private in `pilot-taskbox-01`; the passed smoke is preserved.
+On the user's explicit continuation, exact pinned Engram source and isolated
+native MCP probes established the cause. An explicit write to an unbound new
+project is rejected; native `engram init` supplies the required local binding.
+Scoped reads still report `unknown_project` before the first stored observation.
+Probe `diagnostics/engram-empty-project-02` passed native initialization, a real
+first configuration-decision write, subsequent scoped reads and retrieval from a
+fresh MCP process, without supplied session identity or explicit registration.
+No upstream code, pins, installed hooks or model routing changed. The supported
+startup path is now documented. Actual pilot discovery retry `discovery-02`
+passed native initialization and a genuine configuration-decision save plus
+scoped retrieval. Runtime again confirmed Astra/high with pinned Superpowers
+visible and no remote plugin skills. The only project file is its newly generated
+native `.engram/config.json`; no product scaffolding or implementation was copied
+or written. Superpowers produced the concrete taskbox design and stopped at its
+required conversational design approval. The user has been asked to review it;
+the written specification and plan gates remain pending. The initial model stop
+remains recorded as an intervention,
+not an Engram persistence failure or a passed pilot phase.
 No pilot implementation or
 cutover has occurred. The pilot must use native hook trust without the fixture bypass, retain
 actual model/skill/TDD/memory/recovery/review evidence, and finish locally. The

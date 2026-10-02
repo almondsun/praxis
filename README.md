@@ -68,6 +68,22 @@ python3 -m praxis --home /absolute/disposable/home bootstrap --no-auth --no-self
 Provision-only returns exit 1 and `ready: false` until a live self-test passes.
 Never use a temporary test home as your production configuration.
 
+## New-project memory setup
+
+For a new repository, use the installed `engram init` from its root to generate
+its native `.engram/config.json` binding. Inspect any existing binding first;
+do not overwrite it with `--force` or copy another project's configuration.
+This is local project setup, not cloud enrollment or Git synchronization.
+
+Pinned Engram 2.2.1 reports `unknown_project` for scoped reads before the first
+stored observation, even with a correct binding. For a genuinely new project,
+confirm the canonical name with `mem_current_project`, then save the first real
+project decision through `mem_save` and verify it with a scoped read. Do not seed
+dummy observations, read other projects, or invent a session ID. When the runtime
+has supplied no registered identity, omit `session_id`, as upstream instructs.
+Ambiguous bindings, a failed native write, or failed subsequent retrieval remain
+blockers; an empty initial store alone does not establish persistence failure.
+
 ## Component ownership
 
 | Concern | Owner |
