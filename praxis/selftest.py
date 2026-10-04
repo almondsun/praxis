@@ -8,7 +8,7 @@ import time
 import uuid
 
 from .core import ROOT, Layout, PraxisError, atomic, read_json, run, sha, tree_hashes, write_json
-from .session import execute
+from .session import execute, enter_project
 
 
 def sandbox_check(project, args, *, expect_failure=False):
@@ -130,6 +130,8 @@ def selftest(layout):
     git('init', '-q', '-b', 'praxis-selftest')
     git('config', 'user.name', 'Praxis self-test')
     git('config', 'user.email', 'selftest@praxis.invalid')
+    # This controlled fixture intentionally tracks its verified binding in the baseline.
+    enter_project(layout, project)
     atomic(project / 'total.py', 'def total(values):\n    return 0\n')
     atomic(project / '.gitignore', '__pycache__/\n.superpowers/\n')
     atomic(project / 'PLAN.md', '# Approved self-test plan\n\nImplement total(iterable): sum integers, reject bool and non-integers with TypeError. '
