@@ -9,6 +9,7 @@ from unittest.mock import Mock, patch
 
 from praxis.core import Layout, PraxisError, atomic, read_json, write_json
 from praxis.cutover import apply, fingerprint, shell_conflicts, targets
+from praxis.launchers import resolution
 from praxis.hook import respond
 from praxis.install import base_config, bootstrap, configure, doctor, unpack, configuration_digest
 from praxis.session import execute, infrastructure_errors
@@ -161,7 +162,8 @@ class PraxisTests(unittest.TestCase):
             layout = Layout(tmp)
             path = Path(tmp) / 'inventory.json'
             write_json(path, {'home': str(layout.home), 'blockers': [], 'services': [],
-                'targets': {str(p): fingerprint(p) for p in targets(layout)}})
+                'targets': {str(p): fingerprint(p) for p in targets(layout)},
+                'launcher_resolution': resolution(layout)})
             with patch('os.isatty', return_value=True), patch.dict('os.environ', {}, clear=True), \
                     patch('praxis.cutover.active_codex', side_effect=[[], [123]]), \
                     patch('builtins.input', return_value='RESET CODEX'):
@@ -180,7 +182,8 @@ class PraxisTests(unittest.TestCase):
             write_json(path, {'home': str(layout.home), 'blockers': [],
                 'services': [{'name': name, 'sha256': sha(units / name)}
                     for name in ('first.service', 'second.service')],
-                'targets': {str(p): fingerprint(p) for p in targets(layout)}})
+                'targets': {str(p): fingerprint(p) for p in targets(layout)},
+                'launcher_resolution': resolution(layout)})
             atomic(units / 'second.service', 'changed')
             with patch('os.isatty', return_value=True), patch.dict('os.environ', {}, clear=True), \
                     patch('praxis.cutover.active_codex', return_value=[]), \
@@ -198,7 +201,8 @@ class PraxisTests(unittest.TestCase):
             atomic(layout.bin / 'codex', 'old launcher')
             path = Path(tmp) / 'inventory.json'
             write_json(path, {'home': str(layout.home), 'blockers': [], 'services': [],
-                'targets': {str(p): fingerprint(p) for p in targets(layout)}})
+                'targets': {str(p): fingerprint(p) for p in targets(layout)},
+                'launcher_resolution': resolution(layout)})
             with patch('os.isatty', return_value=True), patch.dict('os.environ', {}, clear=True), \
                     patch('praxis.cutover.active_codex', return_value=[]), \
                     patch('builtins.input', return_value='RESET CODEX'):
@@ -215,7 +219,8 @@ class PraxisTests(unittest.TestCase):
             atomic(layout.codex / 'config.toml', 'model="old"')
             path = Path(tmp) / 'inventory.json'
             write_json(path, {'home': str(layout.home), 'blockers': [], 'services': [],
-                'targets': {str(p): fingerprint(p) for p in targets(layout)}})
+                'targets': {str(p): fingerprint(p) for p in targets(layout)},
+                'launcher_resolution': resolution(layout)})
             with patch('os.isatty', return_value=True), patch.dict('os.environ', {}, clear=True), \
                     patch('praxis.cutover.active_codex', return_value=[]), \
                     patch('builtins.input', return_value='RESET CODEX'), \

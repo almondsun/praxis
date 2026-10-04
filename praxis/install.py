@@ -14,6 +14,7 @@ import tomllib
 import urllib.request
 
 from .core import ROOT, PraxisError, atomic, read_json, run, sha, tree_hashes, write_json
+from .launchers import installed_errors, require_cutover_resolution
 
 
 def unpack(archive, destination, strip_root=False):
@@ -231,6 +232,7 @@ def bootstrap(layout, *, authenticate=True):
         raise PraxisError('This lockfile supports Linux x86-64 only')
     # Check before downloading or changing existing launchers.
     check_ownership(layout)
+    require_cutover_resolution(layout)
     for name in layout.lock['components']:
         install_component(layout, name)
     for name in ('codex', 'gentle-ai', 'engram'):
@@ -251,6 +253,7 @@ def doctor(layout):
     manifest = read_json(marker)
     if 'files' not in manifest:
         return {'ready': False, 'errors': ['Installation incomplete; rerun bootstrap'], 'self_test_required': True}
+    errors.extend(installed_errors(layout))
     for relative, digest in manifest.get('integration_sources', {}).items():
         if not (ROOT / relative).is_file() or sha(ROOT / relative) != digest:
             errors.append('Integration source changed; bootstrap and retest: ' + relative)

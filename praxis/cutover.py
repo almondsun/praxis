@@ -7,6 +7,7 @@ import shutil
 import time
 
 from .core import PraxisError, atomic, read_json, run, sha, write_json
+from .launchers import resolution, require_cutover_resolution, shell_conflicts
 
 
 def active_codex():
@@ -19,19 +20,6 @@ def active_codex():
         except (FileNotFoundError, PermissionError):
             continue
     return found
-
-
-def shell_conflicts(home):
-    results = []
-    for filename in ('.bashrc', '.bash_profile', '.profile', '.zshrc', '.zprofile', '.config/fish/config.fish'):
-        path = home / filename
-        if not path.is_file():
-            continue
-        for number, line in enumerate(path.read_text().splitlines(), 1):
-            if not line.lstrip().startswith('#') and any(s in line for s in ('agentcore', 'CODEX_HOME', 'alias codex', 'function codex')):
-                # Never include shell contents: lines may contain credentials.
-                results.append({'path': str(path), 'line': number})
-    return results
 
 
 def targets(layout):
@@ -63,10 +51,8 @@ def fingerprint(path):
 def inventory(layout):
     layout.state.mkdir(parents=True, exist_ok=True)
     values = {str(p): fingerprint(p) for p in targets(layout)}
-    blockers = []
-    conflicts = shell_conflicts(layout.home)
-    if conflicts:
-        blockers.append({'reason': 'Shell customizations need explicit manual removal', 'locations': conflicts})
+    launcher_resolution = resolution(layout)
+    blockers = list(launcher_resolution['blockers'])
     if any(p.is_symlink() for p in targets(layout) if p.parent != layout.bin):
         blockers.append({'reason': 'Customization root is a symlink; resolve ownership manually'})
     if Path('/etc/codex').exists():
@@ -78,7 +64,8 @@ def inventory(layout):
             content = p.read_text(errors='replace')
             if any(s in content for s in ('agentcore', 'codex', 'gentle-ai')):
                 services.append({'name': p.name, 'sha256': sha(p)})
-    value = {'schema_version': 1, 'home': str(layout.home), 'targets': values,
+    value = {'schema_version': 2, 'home': str(layout.home), 'targets': values,
+             'launcher_resolution': launcher_resolution,
              'blockers': blockers, 'services': services, 'active_codex_pids': active_codex(),
              'effect': 'Archive all user Codex customizations, preserve auth, disable inventoried services; bootstrap separately'}
     destination = layout.state / ('cutover-inventory-' + str(time.time_ns()) + '.json')
@@ -94,6 +81,9 @@ def apply(layout, inventory_path):
         raise PraxisError('Inventory has blockers or belongs to another home')
     if set(reviewed['targets']) != {str(p) for p in targets(layout)}:
         raise PraxisError('Inventory target set differs from the fixed reset scope')
+    if 'launcher_resolution' not in reviewed:
+        raise PraxisError('Inventory lacks Codex launcher ownership; regenerate inventory')
+    require_cutover_resolution(layout, reviewed['launcher_resolution'])
     for p in targets(layout):
         if fingerprint(p) != reviewed['targets'][str(p)]:
             raise PraxisError('Customization changed since inventory; regenerate inventory: ' + str(p))
@@ -108,6 +98,7 @@ def apply(layout, inventory_path):
         fcntl.flock(handle, fcntl.LOCK_EX | fcntl.LOCK_NB)
         if active_codex():
             raise PraxisError('Codex started during confirmation; refusing cutover')
+        require_cutover_resolution(layout, reviewed['launcher_resolution'])
         for p in targets(layout):
             if fingerprint(p) != reviewed['targets'][str(p)]:
                 raise PraxisError('Customization changed during confirmation')
