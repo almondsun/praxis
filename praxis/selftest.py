@@ -103,7 +103,9 @@ def selftest(layout):
     if not runtime['routing_available'] or runtime['ordinary_usage_allowed'] is not True:
         raise PraxisError('Runtime/quota gate unavailable; manually retry later: ' + json.dumps(runtime))
     evidence = layout.state / 'self-tests' / str(time.time_ns()); evidence.mkdir(parents=True)
-    project = evidence / 'work'; project.mkdir()
+    # Native automatic Engram initialization uses the Git-root basename.
+    identity = 'praxis-selftest-' + uuid.uuid4().hex
+    project = evidence / identity; project.mkdir()
     result = {'ready': False, 'evidence': str(evidence), 'lock_sha256': sha(ROOT / 'versions.lock.json'),
               'installation_sha256': sha(layout.codex / 'praxis-install.json')}
     write_json(layout.state / 'readiness.json', result)
@@ -123,7 +125,6 @@ def selftest(layout):
     skills.parent.mkdir(parents=True, exist_ok=True)
     skills.symlink_to(layout.component('superpowers') / 'skills', target_is_directory=True)
     # Fresh per-run namespace avoids polluting real project memories.
-    identity = 'praxis-selftest-' + uuid.uuid4().hex
     def git(*args, cwd=project):
         return run(['git', *args], cwd=cwd, env=layout.fixture_env())
     git('init', '-q', '-b', 'praxis-selftest')

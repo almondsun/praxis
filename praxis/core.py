@@ -83,6 +83,11 @@ class Layout:
         entry = self.lock['components'][name]
         return self.component(name) / entry['executable']
 
+    def project_options(self):
+        return {'engram': str(self.executable('engram')),
+                'protected_roots': [str(ROOT), str(ROOT.parent / 'agentcore'), str(self.codex),
+                                    str(self.data), str(self.home / '.config'), str(self.home / '.agents')]}
+
     def env(self):
         env = dict(os.environ)
         for key in list(env):

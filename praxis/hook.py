@@ -1,16 +1,24 @@
 """Small activation/routing adapter; no engineering workflow implementation."""
 import json
+import os
 from pathlib import Path
+import runpy
 import sys
 
+if __package__:
+    from .project import prepare_project
+else:
+    # Load the managed source directly; neither create nor consume a helper pycache.
+    prepare_project = runpy.run_path(str(Path(__file__).with_name('project.py')))['prepare_project']
 
-def respond(event, routing):
+
+def respond(event, routing, project=None):
     if event.get('hook_event_name') == 'SessionStart':
         return {'hookSpecificOutput': {'hookEventName': 'SessionStart', 'additionalContext':
             'Praxis: invoke the installed using-superpowers skill before engineering work. '
             'Superpowers owns the workflow. Git/checkpoint is authoritative; Engram is advisory. '
             'Read PRAXIS_CHECKPOINT.md when present; do not infer completion from chat memory. '
-            'Routing tiers: ' + json.dumps(routing)}}
+            'Resolved project: ' + json.dumps(project) + '. Routing tiers: ' + json.dumps(routing)}}
     name = event.get('tool_name', '')
     if not name.endswith(('spawn_agent', 'fork_agent')):
         return {}
@@ -36,7 +44,16 @@ if __name__ == '__main__':
     try:
         event = json.load(sys.stdin)
         routing = json.loads(Path(__file__).with_name('routing.json').read_text())
-        print(json.dumps(respond(event, routing)))
+        project = None
+        if event.get('hook_event_name') == 'SessionStart' and \
+                os.environ.get('PRAXIS_PROJECT_ENTRY_MODE') != 'read-only-review':
+            configuration = json.loads(Path(__file__).with_name('project.json').read_text())
+            project = prepare_project(event['cwd'], **configuration)
+        print(json.dumps(respond(event, routing, project)))
     except Exception as error:
-        print('Praxis hook failed: ' + str(error), file=sys.stderr)
-        sys.exit(2)
+        if 'event' in locals() and event.get('hook_event_name') == 'SessionStart':
+            # Exit 2 alone only reports a hook failure. Native continue:false stops startup.
+            print(json.dumps({'continue': False, 'stopReason': 'Praxis project entry blocked: ' + str(error)}))
+        else:
+            print('Praxis hook failed: ' + str(error), file=sys.stderr)
+            sys.exit(2)

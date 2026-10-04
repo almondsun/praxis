@@ -6,6 +6,7 @@ import subprocess
 import time
 
 from .core import ROOT, PraxisError, read_json, run, write_json
+from .project import prepare_project, ProjectError
 
 INFRASTRUCTURE = ('cannot establish app-server socket mount isolation',
                   'error building bubblewrap command', 'read-only file system',
@@ -42,7 +43,14 @@ def infrastructure_errors(log):
 def execute(layout, project, prompt, label, evidence, *, readonly=False, schema=None, interrupt_when=None,
             trusted_fixture=False, timeout=None):
     """One invocation. Never automatically retries or waits for account resets."""
+    from .install import doctor
+    check = doctor(layout)
+    if check['errors']:
+        raise PraxisError('Configuration changed; refusing execution: ' + str(check['errors']))
     evidence = Path(evidence); evidence.mkdir(parents=True, exist_ok=True)
+    if not readonly:
+        prepared = enter_project(layout, project)
+        project = Path(prepared['root'])
     route = read_json(ROOT / 'config/routing.json')['quality']
     command = [str(layout.executable('codex')), 'exec', '--strict-config', '--json',
                '-m', route['model'], '-c', f'model_reasoning_effort="{route["effort"]}"',
@@ -54,21 +62,23 @@ def execute(layout, project, prompt, label, evidence, *, readonly=False, schema=
         command += ['-c', 'sandbox_workspace_write.writable_roots=' + json.dumps(sorted({git_dir, common_dir}))]
     else:
         command += ['-c', 'mcp_servers.engram.enabled=false']
-    from .install import doctor
-    check = doctor(layout)
-    if check['errors']:
-        raise PraxisError('Configuration changed; refusing hook-trust bypass: ' + str(check['errors']))
     if trusted_fixture:
         if not (Path(project).resolve().is_relative_to(Path(evidence).resolve())):
             raise PraxisError('Hook trust bypass is restricted to disposable self-test fixtures')
         command.insert(2, '--dangerously-bypass-hook-trust')
     if schema:
         command += ['--output-schema', str(schema)]
-    command += [prompt]
+    command += ['--', prompt]
     log = evidence / (label + '.jsonl')
     start = time.monotonic(); interrupted = False; timed_out = False
     with log.open('w') as stdout, (evidence / (label + '-stderr.log')).open('w') as stderr:
-        proc = subprocess.Popen(command, env=layout.fixture_env() if trusted_fixture else layout.env(), stdout=stdout, stderr=stderr, start_new_session=True)
+        env = layout.fixture_env() if trusted_fixture else layout.env()
+        if readonly:
+            # Immutable evidence review neither initializes nor queries Engram from hooks.
+            env['PRAXIS_PROJECT_ENTRY_MODE'] = 'read-only-review'
+        else:
+            env.pop('PRAXIS_PROJECT_ENTRY_MODE', None)
+        proc = subprocess.Popen(command, env=env, stdout=stdout, stderr=stderr, start_new_session=True)
         try:
             while proc.poll() is None:
                 if interrupt_when and interrupt_when():
@@ -105,9 +115,29 @@ def execute(layout, project, prompt, label, evidence, *, readonly=False, schema=
     return result
 
 
+def enter_project(layout, project, *, greenfield=False):
+    try:
+        return prepare_project(project, **layout.project_options(), env=layout.env(), greenfield=greenfield)
+    except (ProjectError, OSError, subprocess.TimeoutExpired) as error:
+        raise PraxisError(str(error)) from None
+
+
+def start(layout, project, prompt, *, greenfield=False):
+    from .install import doctor
+    if doctor(layout)['errors']:
+        raise PraxisError('Installation drift; bootstrap and validate before project entry.')
+    prepared = enter_project(layout, project, greenfield=greenfield)
+    evidence = layout.state / 'runs' / str(time.time_ns())
+    result = execute(layout, Path(prepared['root']), prompt, 'project-start', evidence)
+    return {'invocation_finished': True, 'project_entry': prepared,
+            'quality_claim': 'Inspect native verification/review evidence; CLI exit alone is not completion.', **result}
+
+
 def resume(layout, project):
-    project = Path(project).expanduser().resolve()
-    run(['git', 'rev-parse', '--show-toplevel'], cwd=project, env=layout.env())
+    from .install import doctor
+    if doctor(layout)['errors']:
+        raise PraxisError('Installation drift; bootstrap and validate before project entry.')
+    project = Path(enter_project(layout, project)['root'])
     checkpoint = project / 'PRAXIS_CHECKPOINT.md'
     if not checkpoint.is_file():
         raise PraxisError('No PRAXIS_CHECKPOINT.md. Inspect this repository interactively; do not assume a clean start.')

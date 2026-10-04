@@ -15,6 +15,10 @@ def main():
     doctor = commands.add_parser('doctor')
     doctor.add_argument('--runtime', action='store_true', help='Also inspect available models/quota without inference')
     commands.add_parser('self-test')
+    start = commands.add_parser('start', help='Enter an existing project, or explicitly create a pristine greenfield project')
+    start.add_argument('project')
+    start.add_argument('prompt')
+    start.add_argument('--greenfield', action='store_true', help='Explicit intent to create Git only at this pristine project root')
     resume = commands.add_parser('resume')
     resume.add_argument('project')
     commands.add_parser('update')
@@ -44,6 +48,9 @@ def main():
         elif args.command == 'self-test':
             from .selftest import selftest
             result = selftest(layout)
+        elif args.command == 'start':
+            from .session import start
+            result = start(layout, args.project, args.prompt, greenfield=args.greenfield)
         elif args.command == 'resume':
             from .session import resume
             result = resume(layout, args.project)

@@ -47,6 +47,8 @@ Run from the repository:
 python3 -m praxis doctor
 python3 -m praxis doctor --runtime
 python3 -m praxis self-test
+python3 -m praxis start /absolute/project/path "Implement the approved task"
+python3 -m praxis start /absolute/new-project "Create the requested project" --greenfield
 python3 -m praxis resume /absolute/project/path
 python3 -m praxis update
 python3 -m praxis cutover
@@ -70,13 +72,22 @@ Never use a temporary test home as your production configuration.
 
 ## New-project memory setup
 
-For a new repository, use the installed `engram init` from its root to generate
-its native `.engram/config.json` binding. Inspect any existing binding first;
-do not overwrite it with `--force` or copy another project's configuration.
-This is local project setup, not cloud enrollment or Git synchronization.
+Normal native session startup resolves the nearest Git root and initializes a
+genuinely missing binding using pinned upstream Engram. Valid existing bindings
+are reused; malformed, conflicting, symlinked or subproject bindings stop entry
+without repair. Starting in a subdirectory still uses root ownership.
+
+For a new greenfield project, use `praxis start` above with `--greenfield` and the
+definite pristine project root. That explicit intent initializes Git first and
+then Engram; no separate `git init` or `engram init` command is needed. Without
+that intent, a non-Git directory stops at one confirmation gate. Existing Git
+always wins: no nested repository is created. Infrastructure/sensitive roots
+cannot be automatically initialized. No automatic commit or Git-ignore edit is
+performed. See [project bootstrap](docs/PROJECT_BOOTSTRAP.md) for boundaries.
 
 Pinned Engram 2.2.1 reports `unknown_project` for scoped reads before the first
-stored observation, even with a correct binding. For a genuinely new project,
+stored observation, even with a correct binding. Initialization itself writes no
+observations. During real work on a genuinely new project,
 confirm the canonical name with `mem_current_project`, then save the first real
 project decision through `mem_save` and verify it with a scoped read. Do not seed
 dummy observations, read other projects, or invent a session ID. When the runtime
