@@ -8,7 +8,7 @@ import unittest
 from unittest.mock import patch
 
 from praxis.core import ROOT
-from praxis.project import ProjectError, canonical, git, prepare_project
+from praxis.project import ProjectError, canonical, git, prepare_project, protect
 
 
 class ProjectTests(unittest.TestCase):
@@ -144,8 +144,12 @@ class ProjectTests(unittest.TestCase):
     def test_protected_roots_are_never_auto_initialized(self):
         for path, protected in ((self.root, [self.root]), (ROOT, [ROOT]),
                                 (Path('/'), []), (Path.home(), [])):
-            with self.subTest(path=path), self.assertRaisesRegex(ProjectError, 'Protected'):
-                self.prepare(path, greenfield=True, protected_roots=protected)
+            with self.subTest(path=path):
+                # CI checkout ownership may stop Git discovery before the protected-root gate.
+                with self.assertRaises(ProjectError):
+                    self.prepare(path, greenfield=True, protected_roots=protected)
+                with self.assertRaisesRegex(ProjectError, 'Protected'):
+                    protect(path.resolve(), protected, True)
         self.assertFalse((self.root / '.git').exists()); self.assertEqual(self.calls, [])
 
     def test_identity_mismatch_and_native_failures_are_blockers(self):
